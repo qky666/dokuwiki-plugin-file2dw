@@ -1,0 +1,7 @@
+base   file2dw
+author Jose Torrecilla Álvarez
+email  qky669@gmail.com
+date   2018-10-28
+name   file2dw plugin
+desc   Import from file (docx, odt, pdf...) to dokuwiki
+url    http://www.dokuwiki.org/plugin:file2dw
