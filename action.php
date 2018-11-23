@@ -17,11 +17,13 @@ class action_plugin_file2dw extends DokuWiki_Action_Plugin {
   * Registers a callback function for a given event
   */
   function register(Doku_Event_Handler $controller) {
-    // File Parser hook
+    
+    // File parser hook
     $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, '_parser', array());
-    // Display form hook before the wiki page (on top); Maybe create a param to display the form after the page
+    
+    // Display form hook before the wiki page (on top)
     $controller->register_hook('TPL_ACT_RENDER', 'BEFORE', $this, '_render', array());
-    //$controller->register_hook('TEMPLATE_PAGETOOLS_DISPLAY', 'BEFORE', $this, 'addbutton', array());
+    
     //Add MENU_ITEMS_ASSEMBLY 
     $controller->register_hook('MENU_ITEMS_ASSEMBLY', 'AFTER', $this, '_addsvgbutton', array());
   }
@@ -33,43 +35,52 @@ class action_plugin_file2dw extends DokuWiki_Action_Plugin {
    * @param mixed      $param not defined
    */
   function _addsvgbutton(&$event, $param) {
-    //global $conf;
-
     if($event->data['view'] == 'page') {
       array_push($event->data['items'],new \dokuwiki\plugin\file2dw\MenuItem());
     }
   }
 
-
+  /**
+   * Displays the upload form in the pages according to authorized action
+   *
+   * @param Doku_Event $event It's a dokuwiki event function
+   * @param mixed      $param Not defined
+   */
   function _render(&$event, $param) {
-    ### _render : displays the upload form in the pages according to authorized action
-    # INPUT : it's a dokuwiki event function
-    # OUTPUT : void
-    # DISPLAY : upload form
+    // $ID: Page identifier
     global $ID;
     
+    // Check if should display the form
     if ( strpos( $this->getConf('formDisplayRule'), $event->data) === false ) return;
-    // Check if the page exists
+
+    // If the page exists but $event->data != "file2dw", return
     if ( page_exists( $ID ) && $event->data != "file2dw" ) return;
-    if ( page_exists( $ID ) ) echo p_render('xhtml',p_get_instructions( $this->getLang( 'formPageExistMessage' ) ), $info );
+    
     // Check auth user can edit this page
     if ( auth_quickaclcheck( $ID ) < AUTH_EDIT ) return;
-        
+    
+    // If page exists, show warning to the user
+    if ( page_exists( $ID ) ) echo p_render('xhtml',p_get_instructions( $this->getLang( 'formPageExistMessage' ) ), $info );
+    
+    // Show form
     echo $this->_createForm();
 
     if ( $event->data == 'file2dw' ) $event->preventDefault();
     
   }
 
-  
+  /**
+   * Creates an returns a string with the HTML upload form to show to the user
+   * 
+   * @return string HTML upload form
+   */
   function _createForm() {
  
-    //global $ID, $lang;
     global $ID;
 
     $form = new dokuwiki\Form\Form(array('id' => 'file2dw_form', 'enctype' => 'multipart/form-data'));
     
-    // Message
+    // Intro message
     $message = $this->getConf('formIntroMessage');
     if ( $message == 'default' ) $message = $this->getLang('formIntroMessage');
     if ( $message ) {
@@ -104,27 +115,37 @@ class action_plugin_file2dw extends DokuWiki_Action_Plugin {
     return $form->toHTML();
   }
 
-
-
+  
+  /**
+   * Checks if the file mighh be uploaded, then call the file2dw converter
+   *
+   * @param Doku_Event $event It's a dokuwiki event function
+   * @param mixed      $param Not defined
+   */
   function _parser(&$event, $param) {
-    ### _parser : check if a file migth be uploaded, then call the file2dw converter
-    # INPUT : it's a dokuwiki event function
-    # OUTPUT : void
-
+    
     // Check action is file2dw
     if ( $event->data != 'file2dw' ) return;
 
-    ###Preparation of the message renderer
-    //Set the debug lvl
+    // Preparation of the message renderer
+    // Set the debug lvl
     $this->logLevel = $this->getConf( 'logLevel' );
     $this->debugShowInfo = $this->getConf( 'debugShowInfo' );
     //If used, open the logFile
     if ( $this->logLevel > 0 ) {
       $this->logFile = $this->getConf( 'logFile' );
-      if ( isset( $this->logFile ) ) if ( file_exists( dirname( $this->logFile ) ) || mkdir( dirname( $this->logFile ) ) ) {
-        if ( ! ( $this->logFileHandle = @fopen( $this->logFile, 'a' ) ) ) unset( $this->logFileHandle, $this->logFile );
-      } else unset( $this->logFile );
-      if ( ! isset( $this->logFileHandle ) ) $this->_msg('er_logFile');
+      if ( isset( $this->logFile ) ) {
+        if ( file_exists( dirname( $this->logFile ) ) || mkdir( dirname( $this->logFile ) ) ) {
+          if ( ! ( $this->logFileHandle = @fopen( $this->logFile, 'a' ) ) ) {
+            unset( $this->logFileHandle, $this->logFile );
+          }
+        } else {
+          unset( $this->logFile );
+        }
+      }
+      if ( ! isset( $this->logFileHandle ) ) {
+        $this->_msg('er_logFile');
+      }
     }
 
     // Check upload file defined
@@ -133,21 +154,23 @@ class action_plugin_file2dw extends DokuWiki_Action_Plugin {
       $this->_msg( array('ok_info','userFile found: '.$_FILES['userFile']['name']) );
       // If parse work, change action to defined one in conf/local.php file
       $retorno = $this->_file2dw();
-      # Delete temp folder
+      // Delete temp folder
       $this->_purge_env();
     }
-    //if the file is correctly parsed, change the action to "show"
-    //otherwise the action stay file2dw
+    
+    // if the file is correctly parsed, change the action to "show"
+    // otherwise the action stay file2dw
     if ( $retorno === true ) {
       $event->data = 'show';
     } else {
       $event->preventDefault();
     }
 
-    ### Clear the message renderer
+    // Clear the message renderer
     // Close the log file if used
-    if ( isset( $this->logFileHandle ) ) @fclose( $this->logFileHandle );
-    ###
+    if ( isset( $this->logFileHandle ) ) {
+      @fclose( $this->logFileHandle );
+    }
   }
 
 
