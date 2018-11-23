@@ -1,8 +1,6 @@
 # dokuwiki-plugin-file2dw
 
-NOT USABLE YET.
-
-Import from file (docx, odt, pdf...) to dokuwiki.
+Create a dokuwiki page by importing a file.
 
 - More information about file2dw at http://www.dokuwiki.org/plugin:file2dw
 - More information about dokuwiki at http://www.dokuwiki.org
@@ -11,7 +9,7 @@ Import from file (docx, odt, pdf...) to dokuwiki.
 
 ## Description
 
-file2dw is a plugin for dokuwiki. This plugin lets you import a document into Dokuwiki. It supports (at least) .odt, .doc, .docx formats. It should also work with any other document format that pandoc supports (are a lot).
+file2dw is a plugin for dokuwiki. This plugin lets you import a document into Dokuwiki. It supports (at least) .odt, .doc, .docx formats. It should also work with any other document format that pandoc supports (they are a lot).
 
 ## Usage
 
@@ -22,7 +20,7 @@ From a Dokuwiki page, click on the "Import file" button in the Page Tools. Selec
 **External requirements:** This plugin requires the following additional components that must be installed separately:
 
 - pandoc
-- soffice (ex: libreoffice-writer)
+- soffice (example: libreoffice-writer)
 
 If you run the Dokuwiki server on Debian, you can accomplish this requirements following this directions:
 
@@ -30,7 +28,7 @@ If you run the Dokuwiki server on Debian, you can accomplish this requirements f
 
 `sudo apt-get wget default-jre libreoffice-writer`
 
-- If you wish, you can execute the script `installLatestPandoc.sh` (included with this plugin) to install the latest version of pandoc. Or you can install pandoc any other way (check that version installed is not very outdated, or conversion may fail).
+- If you wish, you can execute the script `installLatestPandoc.sh` (included with this plugin in `docker` folder) to install the latest version of pandoc. Or you can install pandoc any other way (check that version installed is not very outdated, or conversion may fail).
 
 ### soffice conversion (.doc support)
 
@@ -42,9 +40,13 @@ I'm not a security expert, but I think that this should not be a problem for any
 
 If PHP code is executed by any other user on your system, you only have to change it in the previous command.
 
+## Usage
+
+From a Dokuwiki page, click on the "Import file" button in the Page Tools. Select a File and click upload.
+
 ## Configuration and Settings
 
-[TO-DO].
+They are almost self-explanatory.
 
 ## Change Log
 

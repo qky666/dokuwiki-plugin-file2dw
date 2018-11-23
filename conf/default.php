@@ -11,7 +11,7 @@ $conf['debugShowInfo']            = 0;
 $conf['logFile']                  = '/var/log/file2dw.log';                 
 // log file where $this->_msg write
 
-$conf['logLevel']                 = 'error';
+$conf['logLevel']                 = '1';
 // log level: what $this->_msg write to the log file 
 
 
