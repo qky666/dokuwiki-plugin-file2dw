@@ -117,7 +117,7 @@ class action_plugin_file2dw extends DokuWiki_Action_Plugin {
 
   
   /**
-   * Checks if the file mighh be uploaded, then call the file2dw converter
+   * Checks if the file might be uploaded, then call the file2dw converter
    *
    * @param Doku_Event $event It's a dokuwiki event function
    * @param mixed      $param Not defined
@@ -174,6 +174,10 @@ class action_plugin_file2dw extends DokuWiki_Action_Plugin {
   }
 
 
+  /**
+   * Converts uploaded file to Dokuwiki syntax
+   *
+   */
   function _file2dw() {
     
     global $ID;
