@@ -217,7 +217,7 @@ class action_plugin_file2dw extends DokuWiki_Action_Plugin {
     $this->dwimgDir = $this->workDir.'/img'; 
     $output = array();
     $command = 'pandoc -s -w dokuwiki --extract-media="'.$this->dwimgDir;
-    $command .= '" -o "'.$this->dwpageFile.'" "'.$this->workFile.'"'
+    $command .= '" -o "'.$this->dwpageFile.'" "'.$this->workFile.'"';
     exec( $command, $output, $return_var );
     
     $this->_msg(array('ok_info','Executed command: '.$command));
