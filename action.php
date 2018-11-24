@@ -177,6 +177,7 @@ class action_plugin_file2dw extends DokuWiki_Action_Plugin {
   /**
    * Converts uploaded file to Dokuwiki syntax
    *
+   * @return bool true if conversion ended ok; false if conversion failed
    */
   function _file2dw() {
     
@@ -215,7 +216,8 @@ class action_plugin_file2dw extends DokuWiki_Action_Plugin {
     $this->dwpageFile = $this->workDir.'/'.$this->dwpageFileName;
     $this->dwimgDir = $this->workDir.'/img'; 
     $output = array();
-    $command = 'pandoc -s -w dokuwiki --extract-media="'.$this->dwimgDir.'" -o "'.$this->dwpageFile.'" "'.$this->workFile.'"';
+    $command = 'pandoc -s -w dokuwiki --extract-media="'.$this->dwimgDir;
+    $command .= '" -o "'.$this->dwpageFile.'" "'.$this->workFile.'"'
     exec( $command, $output, $return_var );
     
     $this->_msg(array('ok_info','Executed command: '.$command));
@@ -250,7 +252,11 @@ class action_plugin_file2dw extends DokuWiki_Action_Plugin {
       // Use $this->importedImages to count (and store, if we need to delete them after an error)
       $this->importedImages = array();
       if ( !$this->_processImgDir($this->dwimgDir) ) {
-        //TODO: delete all imported images until error from dokuwiki
+        //Delete all imported images until error from dokuwiki
+        foreach ($this->importedImages as $imgId) {
+          media_delete($imgId, null);
+        }
+        // Return error
         return $this->_msg('er_img_dir');
       }
     }
@@ -276,12 +282,21 @@ class action_plugin_file2dw extends DokuWiki_Action_Plugin {
     return true;
   }
 
+
+  /**
+   * Add images in a directory (and its subdirectories) to Dokuwiki mediaManager. 
+   * Also updates $this->result (it will be wiki page content).
+   *
+   * @param string $imgDir Full path directory to process
+   * @return bool true if process ended ok; false if failed
+   */
   function _processImgDir($imgDir) {
     
+    // In $imgDir is not a directory, return error
     if (!is_dir($imgDir)) return $this->_msg(array('er_img_dir',$imgDir.' is not a directory'));
     
+    // list and process directory items
     $items = array_diff(scandir($imgDir), array('.','..'));
-    
     foreach ($items as $item) {
       $itemPath = "$imgDir/$item";
       if (is_dir($itemPath)) {
@@ -300,6 +315,13 @@ class action_plugin_file2dw extends DokuWiki_Action_Plugin {
     return true;
   } 
   
+  /**
+   * Add single image to Dokuwiki mediaManager. 
+   * Also updates $this->result (it will be wiki page content).
+   *
+   * @param string $imgPath Full path image to process
+   * @return bool true if process ended ok; false if failed
+   */
   function _processImg($imgPath) {
 
     list( $ext, $mime ) = mimetype( $imgPath );
@@ -310,10 +332,12 @@ class action_plugin_file2dw extends DokuWiki_Action_Plugin {
     $userFileBasename = mb_ereg_replace("(_{1,})", '_', $userFileBasename);
         
     // Trying to get a meaningful and unique file name
+    // It will be something like "Uploaded_file_docx_2018-11-24_23-00-00_img1.jpg"
     $imgBasename = $userFileBasename.'_'.$this->now.'_img'.strval( count($this->importedImages)+1 ).'.'.$ext;
     $imgId = $this->nsName.':'.$imgBasename;
     $destFile = mediaFN( $imgId );
     
+    // Add to mediaManagerif authorized
     if ( auth_quickaclcheck($ID) >= AUTH_UPLOAD ) {
       // Import the image file in the mediaManager (data/media)
       $destDir = mediaFN( $this->nsName );
@@ -321,16 +345,16 @@ class action_plugin_file2dw extends DokuWiki_Action_Plugin {
         return $this->_msg( array( 'er_dirCreate', 'Directory: '.$destDir ) );
       }
       
-      // This works, but I think it's a hack...
+      // This works, but do not know if it is a hack... Meybe it can be done other way?
       $mediaReturn = media_upload_finish($imgPath, $destFile, $this->nsName, $mime, @file_exists($destFile), 'rename' );
       
       if ( $mediaReturn == $this->nsName ) {
-        // Upload OK
+        // "Upload" OK
         $this->importedImages[] = $imgId;
+        // Replace string in result
         $this->result = str_replace( '{{:'.$imgPath, '{{'.$imgId, $this->result );
-        
-        // TODO: replace string in result
       } else {
+        // Return error
         return $this->_msg( array( 'er_img_upload', 'Image: '.$imgPath.' Return: '.print_r($mediaReturn,true) ) );
       }
     } else {
@@ -338,19 +362,23 @@ class action_plugin_file2dw extends DokuWiki_Action_Plugin {
       return $this->_msg('er_acl_upload');
     }
   
-    
     $this->_msg(array('ok_info','Processed image: '.$imgPath));
     
     return true;
   }
   
+
+  /**
+   * Converts $this->userFile to odt and stores it in $this->workFile
+   *
+   * @return bool true if process ended ok; false if failed
+   */
   function _OOConversion() {
     
     // Conversion to odt file
     $output = array();
     $command = 'cd ' . $this->workDir;
     $command .= ' && sudo soffice --nofirststartwizard --headless --convert-to odt:"writer8" "' . $this->userFileName . '"';
-    //exec( $command . $this->userFileName, $output, $return_var );
     $return_var = shell_exec( $command );
     
     // Change original extension to ".odt"
@@ -361,18 +389,20 @@ class action_plugin_file2dw extends DokuWiki_Action_Plugin {
     if ( !file_exists($this->workFile) ) {
       $message = '<br>Missing file: ' . $this->workFile;
       $message .= '<br>Command: ' . $command;
-      //$message .= '<br>Output: '. print_r($output,true);
       $message .= '<br>Return: '. $return_var;
       return $this->_msg( array('er_soffice',$message) );
     }
-    
     
     $this->_msg(array('ok_info','Open Office conversion done'));
     
     return true;
   }
   
-
+  /**
+   * Move uploaded file to a temp directory
+   *
+   * @return bool true if process ended ok; false if failed
+   */
   function _checkUploadedFile() {
     ### _checkUploadedFile : group all process about the uploaded file ### 
     # OUTPUT :
@@ -387,7 +417,7 @@ class action_plugin_file2dw extends DokuWiki_Action_Plugin {
       return $this->_msg( array( 'er_file_upload', $_FILES['userFile']['error'] ) );
     }
 
-    // Not checking the file mimetype: 
+    // Removed: check file mimetype.
     // If pandoc can convert it, then it should work.
     // If not,then it should give an error
     
@@ -414,7 +444,16 @@ class action_plugin_file2dw extends DokuWiki_Action_Plugin {
     return true;
   }
 
-
+  /**
+   * Display and/or log message using the debugLvl value
+   *
+   * @param string|array $message string: key for $this->getLang(); 
+   *   array: $message[0]: string: key for $this->getLang(), $message[1]: string: additional information
+   * @param int $type -1 -> error message, 0 -> normal message, 1 -> info message. 
+   *   If null, the first 3 char of the key define the message type:er_ -> -1, ok_ -> 1, otherwise -> 0
+   * @param bool $force force displaying the message without checking debugLvl
+   * @return bool true -> Display normal message; false ->Display an error message
+   */
   function _msg( $message, $type=null, $force=false ) {
 
     ### _msg : display message using the debugLvl value
@@ -446,6 +485,7 @@ class action_plugin_file2dw extends DokuWiki_Action_Plugin {
     // If output is empty, crash with error display;
     if ( ! $output ) die( $this->getLang( 'er_msg_nomessage' ) );
 
+    // If no $type defined, get it from key
     if ( is_null( $type ) ) {
       $val = substr( $output, 0, strpos( $output, '_' )+1 );
       switch ($val) {
@@ -480,13 +520,16 @@ class action_plugin_file2dw extends DokuWiki_Action_Plugin {
 
   }
 
-
+  /**
+   * Delete temp folder $this->workDir
+   *
+   * @return bool true if process ended ok; false if failed
+   */
   function _purge_env() {
 
     if ( file_exists($this->workDir) ) {
       return $this->_delTree($this->workDir);
     }
-
     return true;
 
   }
@@ -552,6 +595,11 @@ class action_plugin_file2dw extends DokuWiki_Action_Plugin {
     return $path;
   }
 
+  /**
+   * Deletes (recursively) a directory that may not be empty
+   *
+   * @return bool true if process ended ok; false if failed
+   */
   function _delTree($dir) {
     $files = array_diff(scandir($dir), array('.','..'));
     foreach ($files as $file) {

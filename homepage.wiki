@@ -5,7 +5,7 @@ description: Create a dokuwiki page by importing a file
 author     : qky666 
 email      : qky669@gmail.com 
 type       : action
-lastupdate : 2018-11-23
+lastupdate : 2018-11-25
 compatible : Greebo, 2018-04-22
 depends    : 
 conflicts  : 
