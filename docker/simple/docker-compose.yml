@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  dokuwiki:
+    #image: mprasil/dokuwiki:latest
+    build: 
+      context: ../dokuwikiapp
+      args:
+        - MAXPOST=30M
+        - MAXFILE=30M
+    container_name: dokuwiki
+    ports:
+      - "80:80"
+    volumes:
+      - /absolute/or/relative/path/to/data:/dokuwiki/data
+      - /absolute/or/relative/path/to/conf:/dokuwiki/conf
+      - /absolute/or/relative/path/to/plugins:/dokuwiki/lib/plugins
+      - /absolute/or/relative/path/to/tpl:/dokuwiki/lib/tpl
+      - /absolute/or/relative/path/to/logs:/var/log
