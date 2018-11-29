@@ -44,7 +44,44 @@ If PHP code is executed by any other user on your system, you only have to chang
 
 ### Docker
 
-TODO: Not documented yet.
+If you want, you can use Docker to deploy Dokuwiki and meet the requirements mentioned above "for free". If you are new to Docker, you will probably need to search the web for information before you can use it. See https://www.docker.com/
+
+You will have to make several changes in `docker-compose-yml` files (at least in one of them). I hope you will find usefull the comments on the file. To prevent errors, you can copy the `docker` folder contents elsewhere in your system, so you don't lose these changes when you get updates. `docker-compose-yml` files use the files in `docker/dokuwikiapp`, so take care when moving this arround. 
+
+**Note**: This creates an "empty" Dokuwiki, so you will have to follow the install instructions in https://www.dokuwiki.org/install (from step 4) to make it usable.
+
+Two "flavours" are provided: 
+
+- `simple`
+- `proxy`
+
+#### Simple
+
+Path: `docker/simple`. 
+
+A simple `docker-compose.yml` that will create a container with Dokuwiki installed on it. 
+
+To run this, execute:
+
+```
+cd docker/simple
+docker-compose up -d
+```
+
+#### Proxy
+
+Path: `docker/proxy`. 
+
+A `docker-compose.yml` that will create a container with Dokuwiki installed on it and a reverse proxy that allows `https` access to it.
+
+It uses Let's Encrypt services (https://letsencrypt.org/) so you will have to do a little reserach to know how it works. 
+
+To run this, execute:
+
+```
+cd docker/proxy
+docker-compose up -d
+```
 
 ## Usage
 

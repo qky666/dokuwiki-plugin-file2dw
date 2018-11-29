@@ -6,14 +6,14 @@ services:
     build: 
       context: ../dokuwikiapp
       args:
-        - MAXPOST=30M
-        - MAXFILE=30M
+        - MAXPOST=30M    # OPTIONAL: Change value to allow upload of bigger/smaller files
+        - MAXFILE=30M    # OPTIONAL: Change value to allow upload of bigger/smaller files
     container_name: dokuwiki
     ports:
-      - "80:80"
+      - "80:80"   # OPTIONAL: Change "left" number to "publish" Dokuwiki in a different port
     volumes:
-      - /absolute/or/relative/path/to/data:/dokuwiki/data
-      - /absolute/or/relative/path/to/conf:/dokuwiki/conf
-      - /absolute/or/relative/path/to/plugins:/dokuwiki/lib/plugins
-      - /absolute/or/relative/path/to/tpl:/dokuwiki/lib/tpl
-      - /absolute/or/relative/path/to/logs:/var/log
+      - /absolute/or/relative/path/to/data:/dokuwiki/data           # REQUIRED: Change "left" path
+      - /absolute/or/relative/path/to/conf:/dokuwiki/conf           # REQUIRED: Change "left" path
+      - /absolute/or/relative/path/to/plugins:/dokuwiki/lib/plugins # REQUIRED: Change "left" path
+      - /absolute/or/relative/path/to/tpl:/dokuwiki/lib/tpl         # REQUIRED: Change "left" path
+      - /absolute/or/relative/path/to/logs:/var/log                 # REQUIRED: Change "left" path
