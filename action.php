@@ -352,7 +352,7 @@ class action_plugin_file2dw extends DokuWiki_Action_Plugin {
         // "Upload" OK
         $this->importedImages[] = $imgId;
         // Replace string in result
-        $this->result = str_replace( '{{:'.$imgPath, '{{'.$imgId, $this->result );
+        $this->result = str_replace( '{{'.$imgPath, '{{:'.$imgId, $this->result );
       } else {
         // Return error
         return $this->_msg( array( 'er_img_upload', 'Image: '.$imgPath.' Return: '.print_r($mediaReturn,true) ) );
